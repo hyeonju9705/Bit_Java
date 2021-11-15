@@ -56,12 +56,13 @@ select department_id as DEPARTMENT_ID, sum(salary) as SUM_Salary, avg(salary) as
     group by department_id;
     
 -- 연습문제 hr
+-- 각 부서별로 최고 급여를 받는 사원의 사번, 성과 급여를 출력
 select department_id, employee_id,last_name, salary
 from employees
 group by department_id
 having salary>=max(salary)
 order by salary desc;
-
+-- 각 업무별로 급여의 총합을 구하고자 한다. 연봉 총합이 가장 높은 업무부터 업무명과 연봉 총합을 출력
 select job_title, sum(salary) as sumSalary
 from employees
 inner join jobs
@@ -88,7 +89,7 @@ from employees m
 where e.manager_id = m.employee_id);
 
 select * from employees;
-
+-- 자신의 부서 평균 급여보다 급여가 많은 사원의 사번, 성과 급여를 출력
 select employee_id, last_name, salary
 from employees e
 where salary > (select avg(salary)

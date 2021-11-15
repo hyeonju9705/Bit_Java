@@ -232,9 +232,13 @@ where deptno = 10) e10
 inner join (select * from dept) d
 on e10.deptno = d.deptno;
 
--- select
--- empno, enamem, job, sal,
--- (select f=grade \
+select
+empno, ename, job, sal,
+(select grade from salgrade where e.sal between losal and hisal) as salgrade,
+deptno,
+(select dname from dept where e.deptno = dept.deptno) as dname
+from emp e;
+
 -- allen과 직무가 같은 사원들의 사웑정보
 select job,empno,ename,sal,e.deptno, d.dname
 from emp e
@@ -274,3 +278,46 @@ from emp e
 where sal>(select max(sal)
 from emp
 where job='salesman');
+
+-- 연습문제 scott 
+-- 추가수당을 받는 사원 수와 받지 않는 사원 수 출력하기
+-- 원하는 대로 안나올 때는 group by를 사용해보자.....
+select if(comm is null, 'X', 'O') as EXIST_COMM, count(*) as CNT
+from emp
+group by EXIST_COMM;
+
+select job, count(*)
+from emp
+group by job
+having count(job) >= 3;
+-- 입사년도를 기준으로 부서별 입사 인원 수 출력하기 *****
+-- hiredate가 입사일 이기때문에 year(hiredate)하면 hiredate에서 년도를 가져와줌
+-- 그리고 groupby 를 두개 hire_year과 deptno로 다 해주는게 핵심인데,
+-- 그 이유는 입사년도를 기준으로 group by 를 하면 deptno가 여러개 나와서 cnt가 나오지가 않기때문에
+-- deptno도 groupby로 묶어준다
+select year(hiredate) as HIRE_YEAR,deptno,count(*) as CNT
+from emp
+group by HIRE_YEAR,deptno;
+
+-- 사원들은 입사일을 기준으로 3개월이 지난 후 첫 월요일에 정직원이 된다
+-- 정직원이 되는 날짜를 yyyy-mm-dd형식으로 출력하고 , 추가수당이 없는 사원의 추가 수당은 n/a로 출력 *****
+-- 먼저 date_format 함수를 사용해야한느데 나는 str_to_date를 사용햇었다... 근데 날짜에 날짜를 더해주다보면
+-- 처음엔 string 형이었어도 더해주면서 date형으로 바뀌게되서 date_format(date, format)형이고, str_to_date(string, format)함수여서
+-- date_format을 사용하지 않으면 출력이안되기 땜에 date_format을 사용해줘야하고
+-- 3개월 더하는거 adddate사용해서 hiredate에 3개월 더해준 거에다가 case문을 사용해서 또 요일에 따라 며칠을 더해줄지를 한다음에
+-- format함수 이용해서 y-m-d형태로 출력해주는 문제!!!!
+-- cas에다가 dayofweek(hiredate)왜썼냐면 3개월이 더해지던 안더해지던 요일은 같아서 요일을 알려주는 dayofweek함수를 사용해서 이렇게 짰음...
+select empno, ename, hiredate ,
+date_format(
+adddate(adddate(hiredate, INTERVAL 3 MONTH), 
+case dayofweek(hiredate)
+	when 1 then 1
+    when 3 then 6 
+    when 4 then 5 
+	when 5 then 4 
+    when 6 then 3
+    when 7 then 2
+    else 0
+end) ,'%y-%m-%d') as R_JOB, 
+if(comm is null, 'N/A', comm) as COMM
+from emp;
